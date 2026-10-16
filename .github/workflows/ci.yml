@@ -25,6 +25,9 @@ jobs:
   test:
     name: ${{ matrix.project }} (py${{ matrix.python-version }})
     needs: discover
+    # A lab with no projects yet yields an empty matrix, which Actions treats as a failed run.
+    # Skip the test job until the first project lands; the discover job still runs and passes.
+    if: ${{ needs.discover.outputs.projects != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
