@@ -1,0 +1,28 @@
+# epimystic-lab - never publish internal pipeline state
+.state/
+*.seen.json
+*.seen.sqlite
+*.quarantine/
+*.log
+.DS_Store
+
+# secrets / env (defense in depth; the gate also blocks these)
+.env
+.env.*
+*.key
+*.pem
+local.properties
+
+# build / language cruft
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+node_modules/
+.venv/
+venv/
+
+# Test scratch: fixtures are written under the checkout to avoid endpoint-scanner
+# interference with IOC-shaped strings; the directory is disposable.
+.pytest_tmp/

@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: Apache-2.0
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  discover:
+    name: discover projects
+    runs-on: ubuntu-latest
+    outputs:
+      projects: ${{ steps.find.outputs.projects }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find
+        # Every projects/<slug>/ that carries a tests/ directory is a test target.
+        # New weekly artifacts are picked up automatically -- no workflow edit needed.
+        run: |
+          list=$(find projects -mindepth 2 -maxdepth 2 -type d -name tests \
+                 | sed 's|/tests$||' | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "projects=$list" >> "$GITHUB_OUTPUT"
+          echo "discovered: $list"
+
+  test:
+    name: ${{ matrix.project }} (py${{ matrix.python-version }})
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ${{ fromJSON(needs.discover.outputs.projects) }}
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run the project's test suite
+        working-directory: ${{ matrix.project }}
+        # Every tool in the lab is standard-library-only by design, so there is nothing to install.
+        # A project that ever needs a dependency must declare it and this step will be revisited.
+        run: python -m unittest discover -s tests -v
+
+      - name: Smoke-test the CLI entrypoint (if the project exposes one)
+        working-directory: ${{ matrix.project }}
+        run: |
+          pkg=$(python -c "import json,pathlib; p=pathlib.Path('project.json'); print(json.loads(p.read_text())['name'] if p.exists() else '')" 2>/dev/null || true)
+          if [ -n "$pkg" ] && [ -f "$pkg/__main__.py" ]; then
+            python -m "$pkg" --help > /dev/null && echo "CLI ok: $pkg"
+          else
+            echo "no CLI entrypoint declared; skipping"
+          fi
