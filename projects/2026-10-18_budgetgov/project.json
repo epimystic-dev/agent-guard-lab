@@ -1,0 +1,13 @@
+{
+  "name": "budgetgov",
+  "slug": "2026-10-18_budgetgov",
+  "kind": "library",
+  "one_liner": "A runtime budget governor for autonomous agents - token, time, call-count and spend caps with a hard, fail-closed stop and a tamper-visible record of what tripped.",
+  "problem": "OWASP's 2026 LLM Top 10 elevated Unbounded Consumption from LLM10 to LLM06, up four places, with runaway reasoning loops and unbounded tool calling called out explicitly as the agent-era face of the risk. Dark Reading's 2026 piece 'How AI Agents Can Trigger Runaway Costs for Enterprises' and OWASP's own agent-tool-fan-out simulation both show the same shape: an agent loop that keeps calling the model and tools until something external stops it, racking up a Denial-of-Wallet bill whether a human attacker was involved or not. OWASP's listed mitigations are 'token-aware rate limits, hard spending caps, and agent circuit breakers'. budgetgov is the smallest honest implementation of those three primitives as a reusable library: a Governor with configurable TokenCap, TimeCap, CallCap and SpendCap; a session that must reserve against a cap before each call (fail-closed when it cannot) and reconcile actuals after; a lock that stays locked once tripped so the next call cannot argue past it; and an append-only record of what tripped, including the cap, the reservation, and the counter at the moment of refusal. The guard enforces caps the caller declares; it is not a pricing oracle and does not estimate tokens or dollars for the caller.",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The four cap primitives (token / time / call / spend), the fail-closed-on-reservation pattern, and the agent-circuit-breaker shape are the public OWASP LLM06 2026 guidance. No reference implementation of any named gateway product or benchmark suite was read, vendored, or mirrored. The runaway-loop problem framing paraphrases the public Dark Reading 2026 article and the OWASP 2026 release notes; direct quotation is held to under 15 words per source."
+}

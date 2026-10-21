@@ -1,0 +1,3 @@
+{"kind": "opened", "payload": {"caps": {"call": 20, "spend": 0.5, "time": 60.0, "token": 10000}, "label": "demo"}, "seq": 1, "ts": 1792565544.1273413}
+{"kind": "refused", "payload": {"cap": "spend", "cap_limit": 0.5, "detail": "spend cap would be exceeded", "elapsed": 0.00021440000273287296, "reserved": 0.974, "used": 0.0}, "seq": 2, "ts": 1792565544.1275532}
+{"kind": "closed", "payload": {"sealed": true, "used": {"calls": 0, "elapsed": 0.00026139989495277405, "spend": 0.0, "tokens": 0}}, "seq": 3, "ts": 1792565544.1275985}

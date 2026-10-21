@@ -33,8 +33,9 @@ Each folder has its own README, tests and LICENSE; click through for install and
 
 | Tool | What it does | Layer |
 |---|---|---|
+| [`budgetgov`](projects/2026-10-18_budgetgov/) | Runtime budget governor: token / time / call / spend caps with a fail-closed hard stop and a tamper-visible record of what tripped | library |
 
-*The first artifacts arrive on the weekly cycle; the radar publishes every Monday.*
+*The radar publishes every Monday.*
 
 ## How it is made (and what that means)
 

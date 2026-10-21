@@ -1,0 +1,4 @@
+{"kind": "opened", "payload": {"caps": {"call": 2}, "label": "example"}, "seq": 1, "ts": 1.0}
+{"kind": "reservation", "payload": {"elapsed": 0.001, "estimated_cost_usd": null, "estimated_tokens": null, "used_before": {"calls": 0, "spend": 0.0, "tokens": 0}}, "seq": 2, "ts": 1.001}
+{"kind": "reservation", "payload": {"elapsed": 0.002, "estimated_cost_usd": null, "estimated_tokens": null, "used_before": {"calls": 1, "spend": 0.0, "tokens": 0}}, "seq": 3, "ts": 1.002}
+{"kind": "closed", "payload": {"sealed": false, "used": {"calls": 2, "elapsed": 0.01, "spend": 0.0, "tokens": 0}}, "seq": 4, "ts": 1.01}
