@@ -46,7 +46,7 @@ prompt = (
 |---|---|---|
 | QN-001 | HIGH | Plane 14 TAG characters (U+E0000-U+E007F); stripped |
 | QN-002 | HIGH | bidi override characters (U+202A-U+202E, U+2066-U+2069); stripped |
-| QN-003 | HIGH | zero-width characters (U+200B/C/D, U+2060, U+FEFF); stripped |
+| QN-003 | HIGH | zero-width and other invisible format characters (zero-width space/joiner/non-joiner/word-joiner/BOM, SOFT HYPHEN, LTR/RTL MARK, ARABIC LETTER MARK, MONGOLIAN VOWEL SEPARATOR, invisible math operators, deprecated inhibit/activate shaping controls, interlinear annotation anchors); stripped |
 | QN-004 | MEDIUM | C0 / C1 control characters (except TAB / LF / CR); stripped |
 | QN-005 | LOW | private-use codepoints; replaced with `<U+XXXX>` |
 | QN-006 | HIGH | 'ignore (all / previous / prior) instructions'; flattened to `[neutralised-imperative]` |

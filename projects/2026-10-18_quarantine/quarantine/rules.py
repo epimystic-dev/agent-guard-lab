@@ -25,7 +25,9 @@ RULES_META = (
     Rule("QN-002", Severity.HIGH,
          "bidi override characters neutralised"),
     Rule("QN-003", Severity.HIGH,
-         "zero-width characters neutralised"),
+         "zero-width and other invisible format characters "
+         "(incl. SOFT HYPHEN, LTR/RTL MARK, invisible math "
+         "operators) stripped"),
     Rule("QN-004", Severity.MEDIUM,
          "C0 / C1 control characters (except TAB / LF / CR) stripped"),
     Rule("QN-005", Severity.LOW,
@@ -81,8 +83,31 @@ def _rule_qn002(text: str) -> Tuple[str, int]:
 
 
 def _rule_qn003(text: str) -> Tuple[str, int]:
-    """Zero-width characters."""
-    zw = {0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF}
+    """Zero-width and other invisible format characters.
+
+    These codepoints are either literally zero-width or render only
+    at line breaks and are therefore invisible mid-word to a human
+    reviewer. An attacker who scatters one through a keyword
+    ('i' + U+00AD + 'gnore') defeats word-level regexes while the
+    tokenizer still sees the keyword. Stripping them here lets the
+    imperative-form rules (QN-006/007/012) see the plain keyword.
+    """
+    zw = {
+        # Original zero-width set.
+        0x200B, 0x200C, 0x200D, 0x2060, 0xFEFF,
+        # SOFT HYPHEN - invisible mid-word, visible only at line break.
+        0x00AD,
+        # Non-override directional marks (overrides are QN-002).
+        0x061C, 0x200E, 0x200F,
+        # MONGOLIAN VOWEL SEPARATOR - zero-width since Unicode 6.3.
+        0x180E,
+        # Invisible mathematical operators.
+        0x2061, 0x2062, 0x2063, 0x2064,
+        # Deprecated inhibit/activate shaping and digit-shape controls.
+        0x206A, 0x206B, 0x206C, 0x206D, 0x206E, 0x206F,
+        # Interlinear annotation anchors.
+        0xFFF9, 0xFFFA, 0xFFFB,
+    }
     return _strip_class(text, lambda cp: cp in zw)
 
 
