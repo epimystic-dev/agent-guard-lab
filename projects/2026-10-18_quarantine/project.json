@@ -1,0 +1,13 @@
+{
+  "name": "quarantine",
+  "slug": "2026-10-18_quarantine",
+  "kind": "library",
+  "one_liner": "Provenance-wrapping plus heuristic imperative-neutralisation for untrusted ingested text (web pages, emails, retrieved documents) before it reaches an LLM or agent prompt.",
+  "problem": "Prompt Injection remains OWASP LLM01 in the 2026 Top 10, and the indirect form - instructions buried in attacker-controlled external content retrieved by the agent (RAG, web browse, email, document extract) - is the attack surface the 2026 literature has converged on (arXiv 2606.26479 'Adaptive Evaluation of Out-of-Band Defenses', arXiv 2608.27092 'The Framing Gap', arXiv 2605.11868 'IPI-proxy'). OWASP's own 2026 LLM01 mitigation guidance names 'content segregation: separate and clearly denote untrusted content' as a core control, alongside instruction and output filtering. There is no vendor-neutral, standard-library, zero-dependency primitive that implements the specific shape OWASP names: wrap ingested text with a clear, unforgeable provenance boundary; neutralise the small set of character-class carriers that are known-invisible in human review but tokenise (plane-14 TAG, bidi overrides, zero-width characters); flatten the recognisable imperative-form markers ('ignore all previous instructions', role-switch openings, hidden markdown comments) that recur across every public injection corpus; and return the wrapped text with a hits-list the caller can inspect. quarantine is that primitive. The guard raises the cost of indirect injection; it is a heuristic defense that composes with instruction-hierarchy and output filtering, not a replacement for them.",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The content-segregation shape (an unambiguous provenance boundary around untrusted content, randomised per call so an attacker cannot guess the closer) is the OWASP LLM01 2026 guidance read from the OWASP site. The invisible-character class list (Plane 14 TAGs U+E0000-U+E007F; bidi overrides U+202A-U+202E, U+2066-U+2069; zero-width U+200B/C/D, U+2060, U+FEFF; C0/C1 control characters) is Unicode-standard. The imperative-form patterns are paraphrased from the public abstracts of the three cited arXiv papers and from publicly posted injection anthologies; no author's reference implementation was read, vendored, or mirrored. The CLI shape mirrors the lab's conventions. Independent implementation, not affiliated with or endorsed by any of the cited authors or OWASP."
+}

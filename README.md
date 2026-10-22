@@ -34,6 +34,7 @@ Each folder has its own README, tests and LICENSE; click through for install and
 | Tool | What it does | Layer |
 |---|---|---|
 | [`budgetgov`](projects/2026-10-18_budgetgov/) | Runtime budget governor: token / time / call / spend caps with a fail-closed hard stop and a tamper-visible record of what tripped | library |
+| [`quarantine`](projects/2026-10-18_quarantine/) | Provenance-wrap and heuristically neutralise untrusted ingested text (web pages, email, retrieval) before it reaches an LLM or agent prompt | library |
 
 *The radar publishes every Monday.*
 
