@@ -144,8 +144,8 @@ def _rule_qn005(text: str) -> Tuple[str, int]:
 
 _IGNORE_RE = re.compile(
     r"\b(?:please\s+)?(?:ignore|forget|disregard)\s+"
-    r"(?:all\s+|any\s+|the\s+|every\s+|your\s+|previous\s+|prior\s+|above\s+|earlier\s+)+"
-    r"(?:instructions?|rules?|prompts?|directives?|guidelines?|constraints?)",
+    r"(?:all\s+|any\s+|the\s+|every\s+|your\s+|my\s+|our\s+|previous\s+|prior\s+|above\s+|earlier\s+)+"
+    r"(?:instructions?|rules?|prompts?|directives?|guidelines?|constraints?|commands?)",
     re.IGNORECASE,
 )
 
