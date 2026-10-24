@@ -33,7 +33,8 @@ RULES_META = (
     Rule("QN-005", Severity.LOW,
          "private-use codepoints replaced with <U+XXXX>"),
     Rule("QN-006", Severity.HIGH,
-         "'ignore (all / previous / prior) instructions' imperative "
+         "'ignore / cancel / reset / delete / remove / erase / clear "
+         "(all / previous / prior / your) instructions' imperative "
          "flattened"),
     Rule("QN-007", Severity.HIGH,
          "role-switch opening ('You are now ...', 'From now on you are "
@@ -143,7 +144,8 @@ def _rule_qn005(text: str) -> Tuple[str, int]:
 # --- Imperative-form flatteners ---
 
 _IGNORE_RE = re.compile(
-    r"\b(?:please\s+)?(?:ignore|forget|disregard)\s+"
+    r"\b(?:please\s+)?"
+    r"(?:ignore|forget|disregard|cancel|erase|delete|remove|reset|clear)\s+"
     r"(?:all\s+|any\s+|the\s+|every\s+|your\s+|my\s+|our\s+|previous\s+|prior\s+|above\s+|earlier\s+)+"
     r"(?:instructions?|rules?|prompts?|directives?|guidelines?|constraints?|commands?)",
     re.IGNORECASE,
