@@ -52,7 +52,7 @@ prompt = (
 | QN-006 | HIGH | 'ignore / cancel / reset / delete / remove / erase / clear (all / previous / prior / your / my / our) instructions'; flattened to `[neutralised-imperative]` |
 | QN-007 | HIGH | role-switch openings ('You are now ...', 'From now on you are ...'); flattened |
 | QN-008 | MEDIUM | markdown HTML comments (potential hidden instructions); stripped |
-| QN-009 | MEDIUM | injected role prefixes (`system:`, `assistant:`, `instruction:`); flattened |
+| QN-009 | MEDIUM | injected role prefixes - line-anchored `role:`, `SYSTEM MESSAGE:` / `User Prompt:`, markdown-header `### Instruction:` / `## System:`, XML-tag `<system>...</system>`, pipe-wrapped `<\|system\|>` / `<\|/system\|>`, chat-template specials `<\|im_start\|>` / `<\|im_end\|>` / `<\|start_header_id\|>` / `<\|end_header_id\|>` / `<\|eot_id\|>`, Llama-style `[INST]` / `[/INST]`; flattened |
 | QN-010 | MEDIUM | pretend-tool-call JSON blocks (`tool_call`, `function_call`); flattened |
 | QN-011 | LOW | runs of >= 32 of a single character; compressed |
 | QN-012 | HIGH | 'disregard / override your (system) prompt'; flattened |

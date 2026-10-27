@@ -42,8 +42,12 @@ RULES_META = (
     Rule("QN-008", Severity.MEDIUM,
          "markdown HTML comment (potential hidden instruction) stripped"),
     Rule("QN-009", Severity.MEDIUM,
-         "'system:' / 'assistant:' / 'instruction:' injected role "
-         "prefix flattened"),
+         "injected role prefix flattened (line-anchored 'role:', "
+         "'ROLE MESSAGE:' / 'ROLE PROMPT:', markdown-header "
+         "'### Role:', XML-tag '<system>...</system>', "
+         "pipe-wrapped '<|system|>' / '<|/system|>', chat-template "
+         "specials '<|im_start|>' / '<|im_end|>' / header-id / "
+         "eot_id, and Llama-style '[INST]' / '[/INST]')"),
     Rule("QN-010", Severity.MEDIUM,
          "pretend-tool-call JSON block ('tool_call', 'function_call') "
          "flattened"),
@@ -166,9 +170,55 @@ _OVERRIDE_RE = re.compile(
 
 _HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
-_ROLE_PREFIX_RE = re.compile(
-    r"(?m)^(?:system|assistant|user|instruction|developer)\s*:\s*",
-    re.IGNORECASE,
+_ROLE_WORD = r"(?:system|assistant|user|instruction|developer)"
+
+_ROLE_PREFIX_RES = (
+    # Line-anchored "role:" prefix (the original QN-009 pattern).
+    re.compile(
+        r"(?m)^" + _ROLE_WORD + r"\s*:\s*",
+        re.IGNORECASE,
+    ),
+    # Line-anchored "ROLE MESSAGE:" / "ROLE PROMPT:" prefix. Common
+    # across public injection corpora as an alternative to the bare
+    # 'system:' form; the extra terminal noun ('message' / 'prompt')
+    # keeps the match specific enough to resist false positives on
+    # ordinary prose that happens to begin with the role word.
+    re.compile(
+        r"(?m)^" + _ROLE_WORD + r"\s+(?:message|prompt)\s*:\s*",
+        re.IGNORECASE,
+    ),
+    # Markdown-header "### Instruction:" / "## System:" style. The
+    # colon is load-bearing: a bare "## System" is a legitimate docs
+    # heading, but "## System:" followed by content is the recognised
+    # injection shape.
+    re.compile(
+        r"(?m)^#+\s+" + _ROLE_WORD + r"\s*:\s*",
+        re.IGNORECASE,
+    ),
+    # XML-style role tags: <system>, </system>, <assistant>, etc.
+    # These are not standard HTML elements; the ingested-content path
+    # that hits this rule is the same path that fetches attacker-
+    # controlled scrape output.
+    re.compile(
+        r"</?" + _ROLE_WORD + r"\s*/?>",
+        re.IGNORECASE,
+    ),
+    # Pipe-wrapped role tokens from LLM chat templates
+    # ('<|system|>', '<|/system|>', '<|assistant|>', ...).
+    re.compile(
+        r"<\|/?" + _ROLE_WORD + r"\|>",
+        re.IGNORECASE,
+    ),
+    # Common LLM chat-template specials that delimit a role turn.
+    # Matching the delimiter is enough to neutralise the role switch
+    # even without matching the role word that follows.
+    re.compile(
+        r"<\|(?:im_start|im_end|start_header_id|end_header_id|eot_id)\|>",
+        re.IGNORECASE,
+    ),
+    # Llama-style instruction tags. These are literal LLM chat-template
+    # markers; false-positive risk on ordinary prose is low.
+    re.compile(r"\[/?INST\]"),
 )
 
 _TOOL_BLOCK_RE = re.compile(
@@ -210,7 +260,12 @@ def _rule_qn008(text: str) -> Tuple[str, int]:
 
 
 def _rule_qn009(text: str) -> Tuple[str, int]:
-    return _flatten(text, _ROLE_PREFIX_RE, "[neutralised-role-prefix] ")
+    total = 0
+    s = text
+    for pat in _ROLE_PREFIX_RES:
+        s, c = _flatten(s, pat, "[neutralised-role-prefix] ")
+        total += c
+    return s, total
 
 
 def _rule_qn010(text: str) -> Tuple[str, int]:
