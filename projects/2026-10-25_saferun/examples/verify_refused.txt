@@ -1,0 +1,4 @@
+python -m saferun verify --allowed python --workdir . -- rm -rf /
+# verdict: unhealthy
+# [HIGH] SR-002: argv[0] basename 'rm' is not in the allowlist
+# rc: 2

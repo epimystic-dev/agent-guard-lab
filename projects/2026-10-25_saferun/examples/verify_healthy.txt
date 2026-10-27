@@ -1,0 +1,3 @@
+python -m saferun verify --allowed python --workdir . -- python -c "print(1)"
+# verdict: healthy
+# rc: 0

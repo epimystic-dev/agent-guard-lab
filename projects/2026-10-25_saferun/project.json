@@ -1,0 +1,13 @@
+{
+  "name": "saferun",
+  "slug": "2026-10-25_saferun",
+  "kind": "library",
+  "one_liner": "An argv-allowlisted, shell-free, confined subprocess runner for autonomous agents - never shell=True, first-token allowlist, timeout, output cap, cwd-confined, no inherited env.",
+  "problem": "GuardFall (Adversa, 2026-06-30, re-affirmed in the CSA research note of 2026-10) showed that ten of eleven popular open-source AI coding agents' command-safety filters are structurally bypassable: the agent inspects raw command TEXT, but the shell performs quote removal, variable expansion and word splitting AFTER inspection, so a string that looks safe at check time becomes a destructive argv at exec time. The 2026-10 arXiv survey of execution-security research (2607.05743, 'Balkanization of Execution-Security Research for AI Coding Agents') names shell injection among the top execution-security failure classes alongside time-of-check-to-time-of-use. The fix is well known but mis-applied again and again: never pass a string to a shell; use shell=False with an argv list; allowlist on the first token; confine the working directory; cap output; cap time; do not inherit the parent's environment by default. saferun is the smallest vendor-neutral stdlib primitive that packages those invariants together, exposes a verify() mode so a caller can shape-check an argv before running it, and names explicitly what it does not prevent (a permitted command doing permitted things that happen to be destructive; filesystem isolation beyond cwd; network isolation; memory caps).",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The GuardFall vulnerability class and the shell=False / argv-list / allowlist mitigation shape are read from the Adversa and Cloud Security Alliance public write-ups (2026-06-30, 2026-07, 2026-10) and from the public abstract of arXiv 2607.05743; no reference code from any affected agent or from any disclosed mitigation was read, vendored, or mirrored. The subprocess API usage is standard Python documentation. Independent implementation, not affiliated with or endorsed by any of the cited sources."
+}

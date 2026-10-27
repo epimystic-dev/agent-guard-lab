@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "saferun"
+version = "0.1.0"
+description = "An argv-allowlisted, shell-free, confined subprocess runner for autonomous agents."
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache-2.0"}
+authors = [{name = "a human-machine hybrid intelligence"}]
+keywords = ["agents", "safety", "subprocess", "argv", "allowlist", "guardfall", "owasp-asi05"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = []
+
+[project.scripts]
+saferun = "saferun.cli:main"
+
+[tool.setuptools]
+packages = ["saferun"]
