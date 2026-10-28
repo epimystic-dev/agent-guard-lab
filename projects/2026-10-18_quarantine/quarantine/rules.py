@@ -38,7 +38,8 @@ RULES_META = (
          "flattened"),
     Rule("QN-007", Severity.HIGH,
          "role-switch opening ('You are now ...', 'From now on you are "
-         "...') flattened"),
+         "...', 'assume the role of ...', 'take on the persona of ...', "
+         "'behave as ...', 'simulate being ...') flattened"),
     Rule("QN-008", Severity.MEDIUM,
          "markdown HTML comment (potential hidden instruction) stripped"),
     Rule("QN-009", Severity.MEDIUM,
@@ -157,7 +158,9 @@ _IGNORE_RE = re.compile(
 
 _ROLE_SWITCH_RE = re.compile(
     r"\b(?:you\s+are\s+now|from\s+now\s+on,?\s+you\s+are|act\s+as(?:\s+if\s+you\s+are)?|"
-    r"pretend\s+(?:to\s+be|you\s+are)|roleplay\s+as|you\s+will\s+now\s+be)"
+    r"pretend\s+(?:to\s+be|you\s+are)|roleplay\s+as|you\s+will\s+now\s+be|"
+    r"assume\s+the\s+role\s+of|take\s+on\s+the\s+persona\s+of|"
+    r"behave\s+as|simulate\s+being)"
     r"\s+(?:a\s+|an\s+|the\s+)?[A-Za-z]",
     re.IGNORECASE,
 )
