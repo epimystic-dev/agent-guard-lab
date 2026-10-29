@@ -35,6 +35,9 @@ RULES_META = (
     Rule("QN-006", Severity.HIGH,
          "'ignore / cancel / reset / delete / remove / erase / clear "
          "(all / previous / prior / your) instructions' imperative "
+         "flattened; negated-follow family ('stop / cease / halt / "
+         "quit following ...', 'do not / don't / never follow ...') "
+         "with the same qualifier + terminal-noun tail also "
          "flattened"),
     Rule("QN-007", Severity.HIGH,
          "role-switch opening ('You are now ...', 'From now on you are "
@@ -156,6 +159,25 @@ _IGNORE_RE = re.compile(
     re.IGNORECASE,
 )
 
+# The negated-follow family: 'stop / cease / halt / quit following ...'
+# and 'do not / don't / never follow ...'. The qualifier run (your /
+# previous / prior / my / ...) is REQUIRED so bare advice such as
+# 'you should never follow instructions blindly' or 'always follow
+# instructions carefully' passes through unflagged. The terminal-noun
+# list is the same as _IGNORE_RE, so 'stop following your instagram
+# feed' is likewise not a match.
+_FOLLOW_NEG_RE = re.compile(
+    r"\b(?:please\s+)?"
+    r"(?:"
+    r"(?:stop|cease|halt|quit)\s+following"
+    r"|"
+    r"(?:do\s+not|don't|never)\s+follow"
+    r")\s+"
+    r"(?:all\s+|any\s+|the\s+|every\s+|your\s+|my\s+|our\s+|previous\s+|prior\s+|above\s+|earlier\s+)+"
+    r"(?:instructions?|rules?|prompts?|directives?|guidelines?|constraints?|commands?)",
+    re.IGNORECASE,
+)
+
 _ROLE_SWITCH_RE = re.compile(
     r"\b(?:you\s+are\s+now|from\s+now\s+on,?\s+you\s+are|act\s+as(?:\s+if\s+you\s+are)?|"
     r"pretend\s+(?:to\s+be|you\s+are)|roleplay\s+as|you\s+will\s+now\s+be|"
@@ -241,7 +263,9 @@ def _flatten(text: str, pattern: "re.Pattern[str]", marker: str) -> Tuple[str, i
 
 
 def _rule_qn006(text: str) -> Tuple[str, int]:
-    return _flatten(text, _IGNORE_RE, "[neutralised-imperative]")
+    s, c1 = _flatten(text, _IGNORE_RE, "[neutralised-imperative]")
+    s, c2 = _flatten(s, _FOLLOW_NEG_RE, "[neutralised-imperative]")
+    return s, c1 + c2
 
 
 def _rule_qn007(text: str) -> Tuple[str, int]:

@@ -49,7 +49,7 @@ prompt = (
 | QN-003 | HIGH | zero-width and other invisible format characters (zero-width space/joiner/non-joiner/word-joiner/BOM, SOFT HYPHEN, LTR/RTL MARK, ARABIC LETTER MARK, MONGOLIAN VOWEL SEPARATOR, invisible math operators, deprecated inhibit/activate shaping controls, interlinear annotation anchors); stripped |
 | QN-004 | MEDIUM | C0 / C1 control characters (except TAB / LF / CR); stripped |
 | QN-005 | LOW | private-use codepoints; replaced with `<U+XXXX>` |
-| QN-006 | HIGH | 'ignore / cancel / reset / delete / remove / erase / clear (all / previous / prior / your / my / our) instructions'; flattened to `[neutralised-imperative]` |
+| QN-006 | HIGH | 'ignore / cancel / reset / delete / remove / erase / clear (all / previous / prior / your / my / our) instructions', plus the negated-follow family ('stop / cease / halt / quit following ...', 'do not / don't / never follow ...') with the same qualifier + terminal-noun tail; flattened to `[neutralised-imperative]` |
 | QN-007 | HIGH | role-switch openings ('You are now ...', 'From now on you are ...', 'act as ...', 'pretend to be ...', 'roleplay as ...', 'assume the role of ...', 'take on the persona of ...', 'behave as ...', 'simulate being ...'); flattened |
 | QN-008 | MEDIUM | markdown HTML comments (potential hidden instructions); stripped |
 | QN-009 | MEDIUM | injected role prefixes - line-anchored `role:`, `SYSTEM MESSAGE:` / `User Prompt:`, markdown-header `### Instruction:` / `## System:`, XML-tag `<system>...</system>`, pipe-wrapped `<\|system\|>` / `<\|/system\|>`, chat-template specials `<\|im_start\|>` / `<\|im_end\|>` / `<\|start_header_id\|>` / `<\|end_header_id\|>` / `<\|eot_id\|>`, Llama-style `[INST]` / `[/INST]`; flattened |
