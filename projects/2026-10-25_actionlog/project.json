@@ -1,0 +1,13 @@
+{
+  "name": "actionlog",
+  "slug": "2026-10-25_actionlog",
+  "kind": "library",
+  "one_liner": "An append-only, SHA-256 hash-chained action audit log for autonomous agents - make tampering (edit, insert, delete, reorder) visible without a blockchain, a signature chain, or a daemon.",
+  "problem": "Three convergent 2026 arXiv papers (2609.01931 'Agent Flight Recorder' Sept 2026, 2609.35659 'Tracekit' Sept 2026, 2609.04017 'A Black Box for Agentic Processes') and the Hugging Face July 2026 post-mortem all propose or require the same primitive: an append-only hash-chained ledger of every agent action, verifiable after the fact. Hugging Face reconstructed roughly 17,600 attacker actions from logs during their July 2026 incident; without a tamper-evident chain, those logs are only as trustworthy as the host that wrote them. OWASP's 2026 LLM Top 10 names 'immutable logging' as a defense-in-depth control for both LLM01 (indirect injection) and the agent-era risks. There is no vendor-neutral, zero-dependency, standard-library primitive that implements the smallest honest version of this shape: SHA-256 chain the entries, write a .head sidecar so a reader can detect a truncated chain, provide a verify() that locates the first break and names the tamper class (hash-mismatch, prev-link-broken, seq-skip, head-mismatch, trailing-garbage, genesis-prev-nonzero), and compose with the rest of a caller's security stack. actionlog is that primitive. It makes tampering visible; it does NOT make tampering impossible, prevent an attacker who holds the current head from forking the chain, prevent deletion of the entire log, or substitute for a signed-release / replicated / anchored substrate.",
+  "language": "python",
+  "test_cmd": "python -m unittest discover -s tests",
+  "build_cmd": "python -m pip install -e .",
+  "deps": [],
+  "license": "Apache-2.0",
+  "clean_room": "The hash-chain-plus-head shape is the convergence of 2609.01931 (Agent Flight Recorder), 2609.35659 (Tracekit), 2609.04017 (A Black Box for Agentic Processes) and the aiAuthZ paper (2607.05518) as read from their public abstracts; no reference code from any of those projects was read, vendored, or mirrored. SHA-256 and the Python stdlib hashlib / json interfaces are canonical. The tamper taxonomy (edit / insert / delete / reorder / fork / head-mismatch) is read from the Agent Flight Recorder abstract and generalised; the specific rule-id numbering (AL-001..AL-006) is this project's own. Independent implementation, not affiliated with or endorsed by any of the cited authors."
+}

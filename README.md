@@ -36,6 +36,7 @@ Each folder has its own README, tests and LICENSE; click through for install and
 | [`budgetgov`](projects/2026-10-18_budgetgov/) | Runtime budget governor: token / time / call / spend caps with a fail-closed hard stop and a tamper-visible record of what tripped | library |
 | [`quarantine`](projects/2026-10-18_quarantine/) | Provenance-wrap and heuristically neutralise untrusted ingested text (web pages, email, retrieval) before it reaches an LLM or agent prompt | library |
 | [`saferun`](projects/2026-10-25_saferun/) | Argv-allowlisted, shell-free, confined subprocess runner: never shell=True, first-token allowlist, timeout, output cap, cwd-confined, no inherited env | library |
+| [`actionlog`](projects/2026-10-25_actionlog/) | Append-only SHA-256 hash-chained action audit: make tampering (edit, insert, delete, reorder) visible without a blockchain or signature chain | library |
 
 *The radar publishes every Monday.*
 
