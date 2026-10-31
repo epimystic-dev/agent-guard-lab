@@ -112,6 +112,74 @@ class RuleSmokeTests(unittest.TestCase):
         )
         self.assertIn("SR-003", self._rule_ids(scan))
 
+    def test_sr003_mixed_separator_traversal(self):
+        """Traversal with mixed path separators must still fire SR-003.
+
+        On Windows both '/' and '\\\\' are valid path separators and
+        subprocess resolution honours either, so an argv[0] like
+        'x/..\\\\y' must be caught the same as pure-slash or
+        pure-backslash variants. Historically the rule split on each
+        separator independently and missed the mixed shape because
+        '..' never ended up as a lone list element on either split.
+        """
+        wd = support.new_workdir()
+        # Each entry: a path shape and the basename to allowlist so
+        # we isolate SR-003 and don't trip SR-002 as a side effect.
+        attack_shapes = [
+            (r"x/..\y", "y"),
+            (r"foo/..\bar", "bar"),
+            (r"foo\../bar", "bar"),
+            (r"a\..\b/..\c", "c"),
+        ]
+        for cmd0, base in attack_shapes:
+            with self.subTest(cmd0=cmd0):
+                scan = shape_check(
+                    argv=[cmd0],
+                    allowed_commands=[base],
+                    workdir=wd,
+                    timeout_sec=5.0,
+                    max_output_bytes=4096,
+                    env_passthrough=False,
+                )
+                self.assertIn(
+                    "SR-003",
+                    self._rule_ids(scan),
+                    "mixed-separator traversal "
+                    + repr(cmd0) + " bypassed SR-003: "
+                    + repr(scan.to_json()),
+                )
+
+    def test_sr003_dotdot_substring_is_not_traversal(self):
+        """A '..' substring that is not a path component must NOT fire
+        SR-003. Guards against overreach from the mixed-separator fix.
+        """
+        wd = support.new_workdir()
+        # Each path contains the literal '..' as part of a component
+        # name, never flanked on both sides by separators. SR-003
+        # must stay silent on these.
+        benign_shapes = [
+            ("my..dir/python", "python"),
+            ("python..exe", "python..exe"),
+            ("a/b..c/d", "d"),
+            (r"a\b..c\d", "d"),
+        ]
+        for cmd0, base in benign_shapes:
+            with self.subTest(cmd0=cmd0):
+                scan = shape_check(
+                    argv=[cmd0],
+                    allowed_commands=[base],
+                    workdir=wd,
+                    timeout_sec=5.0,
+                    max_output_bytes=4096,
+                    env_passthrough=False,
+                )
+                self.assertNotIn(
+                    "SR-003",
+                    self._rule_ids(scan),
+                    "benign '..' substring " + repr(cmd0)
+                    + " falsely fired SR-003: " + repr(scan.to_json()),
+                )
+
     # SR-004: shell metachar (informational)
     def test_sr004_shell_metachar(self):
         wd = support.new_workdir()

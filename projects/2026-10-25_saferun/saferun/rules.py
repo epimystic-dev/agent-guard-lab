@@ -170,8 +170,16 @@ def shape_check(
     base0 = _basename_of(cmd0)
     base_set, abs_set = _normalise_allowlist(allowed_commands or ())
 
-    # SR-003: traversal / null bytes in argv[0]
-    if ".." in cmd0.split("/") or ".." in cmd0.split("\\") or "\x00" in cmd0:
+    # SR-003: traversal / null bytes in argv[0].
+    # Both '/' and '\\' are valid path separators on Windows, and
+    # subprocess resolution honours either, so a mixed path like
+    # 'x/..\\y' must be caught the same as 'x/../y' or 'x\\..\\y'.
+    # Splitting on each separator independently misses the mixed
+    # shape because '..' never ends up as a lone list element on
+    # either split; normalise '\\' to '/' before the component
+    # check so a single split sees both separator styles at once.
+    cmd0_norm = cmd0.replace("\\", "/")
+    if ".." in cmd0_norm.split("/") or "\x00" in cmd0:
         findings.append(_finding(
             "SR-003",
             "argv[0] contains a traversal segment or null byte",

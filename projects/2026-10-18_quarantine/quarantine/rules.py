@@ -53,7 +53,11 @@ RULES_META = (
          "specials '<|im_start|>' / '<|im_end|>' / header-id / "
          "eot_id, and Llama-style '[INST]' / '[/INST]')"),
     Rule("QN-010", Severity.MEDIUM,
-         "pretend-tool-call JSON block ('tool_call', 'function_call') "
+         "pretend-tool-call JSON block ('tool_call', 'function_call', "
+         "'tool_use', 'function') flattened; OpenAI-style "
+         "'{\"name\": ..., \"arguments\": ...}' object (either key order) "
+         "flattened; pretend tool-call tag shapes "
+         "('<function_call>...</function_call>', '<tool>...</tool>') "
          "flattened"),
     Rule("QN-011", Severity.LOW,
          "excessive repeated characters (>= 32 of one char) compressed"),
@@ -250,6 +254,33 @@ _TOOL_BLOCK_RE = re.compile(
     r"\{\s*\"(?:tool_call|function_call|tool_use|function)\"\s*:",
 )
 
+# OpenAI-style pretend-tool-call object: {"name": ..., "arguments": ...}.
+# Both keys together in the same object are the signal; neither key
+# alone matches. Either key order is accepted (the JSON spec permits
+# both). The string-value sub-pattern tolerates escaped quotes so the
+# arguments field's typical JSON-escaped payload does not foil the
+# second-key probe. Case-insensitive so a cosmetic 'Name'/'Arguments'
+# capitalisation does not slip past.
+_TOOL_OPENAI_RE = re.compile(
+    r"\{\s*(?:"
+    r'"name"\s*:\s*"(?:[^"\\]|\\.)*"\s*,\s*"arguments"\s*:'
+    r"|"
+    r'"arguments"\s*:\s*"(?:[^"\\]|\\.)*"\s*,\s*"name"\s*:'
+    r")",
+    re.IGNORECASE,
+)
+
+# Pretend tool-call XML-style tags. 'function_call' and 'tool' are not
+# standard HTML elements; LLM harnesses that frame tool calls as XML
+# use these exact names. The trailing group '(?:\s+[^>]*)?/?>' admits
+# attribute lists and self-closing tags but refuses word-prefix
+# false positives such as '<toolbox>' or '<tooltip>' (which lack the
+# required separator between the matched name and the closing bracket).
+_TOOL_TAG_RE = re.compile(
+    r"</?(?:function_call|tool)(?:\s+[^>]*)?/?>",
+    re.IGNORECASE,
+)
+
 
 def _flatten(text: str, pattern: "re.Pattern[str]", marker: str) -> Tuple[str, int]:
     count = 0
@@ -296,17 +327,10 @@ def _rule_qn009(text: str) -> Tuple[str, int]:
 
 
 def _rule_qn010(text: str) -> Tuple[str, int]:
-    def repl(m: "re.Match[str]") -> str:
-        return "[neutralised-tool-block] {"
-
-    count = 0
-
-    def _repl_count(m: "re.Match[str]") -> str:
-        nonlocal count
-        count += 1
-        return repl(m)
-
-    return _TOOL_BLOCK_RE.sub(_repl_count, text), count
+    s, c1 = _flatten(text, _TOOL_BLOCK_RE, "[neutralised-tool-block] {")
+    s, c2 = _flatten(s, _TOOL_OPENAI_RE, "[neutralised-tool-block] {")
+    s, c3 = _flatten(s, _TOOL_TAG_RE, "[neutralised-tool-tag]")
+    return s, c1 + c2 + c3
 
 
 def _rule_qn011(text: str) -> Tuple[str, int]:
