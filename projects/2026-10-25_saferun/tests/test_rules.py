@@ -193,6 +193,93 @@ class RuleSmokeTests(unittest.TestCase):
         )
         self.assertIn("SR-004", {f.rule_id for f in scan.findings})
 
+    def test_sr004_cmd_variable_substitution(self):
+        """cmd.exe-style %VAR% substitution must fire SR-004.
+
+        The Windows parallel of bash $VAR: under shell=True with
+        cmd.exe, a '%NAME%' token is replaced by the value of
+        environment variable NAME before the program ever sees the
+        argv element. SR-004 is the upstream-argv-construction
+        tripwire and must catch this family in parity with the bare
+        '$' char-set hit. The attack shapes below each contained no
+        other SR-004 metachar, so without the %VAR% pattern check
+        they produced zero SR-004 hits.
+        """
+        wd = support.new_workdir()
+        base = support.python_basename()
+        # Each entry is an argv built so only the TARGET element can
+        # trip SR-004; the rest of the argv is clean.
+        attack_shapes = [
+            [base, "%USERNAME%"],
+            [base, "echo", "%PATH%"],
+            [base, "-c", "print('%COMPUTERNAME%')"],
+            [base, "cd", "%TEMP%"],
+            [base, "--value=%ProgramFiles%"],
+            [base, "%X%", "%Y%"],
+        ]
+        for argv in attack_shapes:
+            with self.subTest(argv=argv):
+                scan = shape_check(
+                    argv=argv,
+                    allowed_commands=[base],
+                    workdir=wd,
+                    timeout_sec=5.0,
+                    max_output_bytes=4096,
+                    env_passthrough=False,
+                )
+                self.assertIn(
+                    "SR-004",
+                    self._rule_ids(scan),
+                    "cmd.exe %VAR% shape " + repr(argv)
+                    + " bypassed SR-004: " + repr(scan.to_json()),
+                )
+
+    def test_sr004_percent_character_fp_guard(self):
+        """Benign '%' usages must NOT fire SR-004.
+
+        Guards against overreach from the %VAR% extension. Python
+        format specifiers, URL-encoded bytes, literal percentages,
+        escaped '%%' pairs, and bare percents in prose each contain
+        at least one '%' but not the '%IDENT%' shape cmd.exe would
+        substitute. SR-004 must stay silent on these, or Python
+        callers (which use '%s' / '%d' routinely) would trip the
+        rule on every format string.
+        """
+        wd = support.new_workdir()
+        base = support.python_basename()
+        # Each entry is an argv whose non-program elements each
+        # contain '%' in a benign shape (no %IDENT% pair) and no
+        # other SR-004 char-set metachar. SR-004 must not fire.
+        benign_shapes = [
+            [base, "-c", "print('%s' % x)"],
+            [base, "-c", "print('%d items' % 3)"],
+            [base, "format=%s"],
+            [base, "url=https://example.com/a%20b"],
+            [base, "-c", "print('rate: 50%')"],
+            [base, "-c", "print('%(name)s' % d)"],
+            [base, "fmt=%-4.2f"],
+            [base, "literal=%%"],
+            [base, "trailing%"],
+            [base, "end%"],
+            [base, "a%b"],
+        ]
+        for argv in benign_shapes:
+            with self.subTest(argv=argv):
+                scan = shape_check(
+                    argv=argv,
+                    allowed_commands=[base],
+                    workdir=wd,
+                    timeout_sec=5.0,
+                    max_output_bytes=4096,
+                    env_passthrough=False,
+                )
+                self.assertNotIn(
+                    "SR-004",
+                    self._rule_ids(scan),
+                    "benign '%' usage " + repr(argv)
+                    + " falsely fired SR-004: " + repr(scan.to_json()),
+                )
+
     # SR-005: workdir missing
     def test_sr005_missing_workdir(self):
         scan = shape_check(

@@ -50,12 +50,12 @@ prompt = (
 | QN-004 | MEDIUM | C0 / C1 control characters (except TAB / LF / CR); stripped |
 | QN-005 | LOW | private-use codepoints; replaced with `<U+XXXX>` |
 | QN-006 | HIGH | 'ignore / cancel / reset / delete / remove / erase / clear (all / previous / prior / your / my / our) instructions', plus the negated-follow family ('stop / cease / halt / quit following ...', 'do not / don't / never follow ...') with the same qualifier + terminal-noun tail; flattened to `[neutralised-imperative]` |
-| QN-007 | HIGH | role-switch openings ('You are now ...', 'From now on you are ...', 'act as ...', 'pretend to be ...', 'roleplay as ...', 'assume the role of ...', 'take on the persona of ...', 'behave as ...', 'simulate being ...'); flattened |
+| QN-007 | HIGH | role-switch openings ('You are now ...', 'From now on you are ...', 'act as ...', 'act like ...', 'pretend to be ...', 'roleplay as ...', 'imagine (that) you are ...', 'assume the role of ...', 'take on the persona of ...', 'behave as ...', 'simulate being ...', and the ASCII contraction forms 'you're now ...', 'pretend you're ...', 'act as if you're ...'); flattened |
 | QN-008 | MEDIUM | markdown HTML comments (potential hidden instructions); stripped |
 | QN-009 | MEDIUM | injected role prefixes - line-anchored `role:`, `SYSTEM MESSAGE:` / `User Prompt:`, markdown-header `### Instruction:` / `## System:`, XML-tag `<system>...</system>`, pipe-wrapped `<\|system\|>` / `<\|/system\|>`, chat-template specials `<\|im_start\|>` / `<\|im_end\|>` / `<\|start_header_id\|>` / `<\|end_header_id\|>` / `<\|eot_id\|>`, Llama-style `[INST]` / `[/INST]`; flattened |
 | QN-010 | MEDIUM | pretend-tool-call JSON blocks (`tool_call`, `function_call`, `tool_use`, `function`), OpenAI-style `{"name": ..., "arguments": ...}` objects (either key order), and XML-style pretend-tool-call tags (`<function_call>...</function_call>`, `<tool>...</tool>`); flattened |
 | QN-011 | LOW | runs of >= 32 of a single character; compressed |
-| QN-012 | HIGH | 'disregard / override your (system) prompt'; flattened |
+| QN-012 | HIGH | 'disregard / override / bypass / ignore / replace (your / the) (system) prompt / instructions / rules / safety / guardrails', plus the disablement-verb family ('disable / deactivate / turn off / circumvent ...') with `all` added to the qualifier run and `restrictions` / `limitations` added to the terminal-noun tail; flattened |
 
 Every neutralisation leaves a **visible, inert marker** - the caller sees exactly what was changed and can audit the hit list. There is no silent removal.
 

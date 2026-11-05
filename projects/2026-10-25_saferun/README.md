@@ -86,7 +86,7 @@ Every rule's id is stable and documented. A rule fires either on `verify()` or i
 | `SR-001` | HIGH | argv must be a list / tuple of strings, not a string (a string implies shell=True semantics; forbidden) |
 | `SR-002` | HIGH | argv[0] (resolved to its basename) is not in the configured allowed_commands allowlist |
 | `SR-003` | HIGH | argv[0] contains a path traversal segment ('..') or a null byte |
-| `SR-004` | MEDIUM | an argv element contains a shell metacharacter; harmless under saferun but a signal upstream argv construction may be building from untrusted text |
+| `SR-004` | MEDIUM | an argv element contains a shell metacharacter or a cmd.exe `%VAR%` variable reference; harmless under saferun but a signal upstream argv construction may be building from untrusted text |
 | `SR-005` | HIGH | workdir is missing or is not an existing directory |
 | `SR-006` | INFO | env is set to inherit the parent process environment; default is a minimal env for fail-closed hygiene |
 | `SR-007` | HIGH | timeout_sec must be a positive finite number |
@@ -109,7 +109,7 @@ A clean saferun run means **the shape was within policy, the subprocess ran with
 
 ## False-positive modes
 
-- `SR-004` (shell metacharacter) fires on any argv element containing one of the control / substitution operators `| & ; < > $ \` \n \r`. The set is narrow by design: parentheses, quotes, asterisks, question marks, brackets, braces, hash, tilde and exclamation are omitted because they appear routinely in benign non-shell argv elements (python expressions, SQL, globs the program itself expands). Under `shell=False` the flagged characters are also passed verbatim to the program, so a `python -c "print('a|b')"` triggers the finding even though it is semantically fine. `SR-004` is MEDIUM, and `verdict == needs-attention` is a signal to review the upstream argv builder, not an outright block.
+- `SR-004` (shell metacharacter) fires on any argv element containing one of the control / substitution operators `| & ; < > $ \` \n \r`, OR on an argv element containing a cmd.exe-style `%VAR%` variable reference (the Windows parallel of bash `$VAR`). The char-set is narrow by design: parentheses, quotes, asterisks, question marks, brackets, braces, hash, tilde and exclamation are omitted because they appear routinely in benign non-shell argv elements (python expressions, SQL, globs the program itself expands). Bare `%` is likewise not in the char-set: a `%s`/`%d` format specifier, a URL-encoded `%20`, or a literal `50%` carries no `%VAR%` shape and does not fire. Under `shell=False` the flagged shapes are also passed verbatim to the program, so a `python -c "print('a|b')"` triggers the finding even though it is semantically fine. `SR-004` is MEDIUM, and `verdict == needs-attention` is a signal to review the upstream argv builder, not an outright block.
 - `SR-010` (absolute path matched by basename) is a MEDIUM when a caller sets an absolute `argv[0]` against a basename-only allowlist. The run proceeds; the finding is there so a caller who wants strict absolute-path matching sees the mismatch.
 
 ## Honesty floor

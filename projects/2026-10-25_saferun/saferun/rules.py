@@ -15,6 +15,7 @@ carries the same ScanResult.
 from __future__ import annotations
 
 import os
+import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .types import Finding, Rule, ScanResult, Severity, Verdict
@@ -33,6 +34,20 @@ from .types import Finding, Rule, ScanResult, Severity, Verdict
 # expressions, SQL, globs the program itself expands).
 _SHELL_METACHARS = set("|&;<>$`\n\r")
 
+# cmd.exe variable substitution. Under cmd.exe shell=True, a token
+# of the shape '%NAME%' is replaced with the value of environment
+# variable NAME before the program ever sees the argv element. This
+# is the Windows parallel of bash '$VAR' substitution, which the
+# bare-character set above already catches via '$'. A naive '%' in
+# _SHELL_METACHARS would be unusably noisy (Python format strings
+# like '%s' % x, URL-encoded bytes like '%20', literal percentages
+# like '50%') so the check is pattern-shaped: a '%' followed by a
+# C-identifier followed by a closing '%'. That matches the only
+# shape cmd.exe would actually substitute while leaving every
+# benign '%' usage unflagged. The pattern is also what '%%' escapes
+# to in cmd.exe (a literal '%'), so a '%%' pair does not match.
+_CMD_VARSUB_RE = re.compile(r"%[A-Za-z_][A-Za-z0-9_]*%")
+
 
 ALL_RULES: Tuple[Rule, ...] = (
     Rule("SR-001", Severity.HIGH,
@@ -45,9 +60,10 @@ ALL_RULES: Tuple[Rule, ...] = (
          "argv[0] contains a path traversal segment ('..') or a "
          "null byte"),
     Rule("SR-004", Severity.MEDIUM,
-         "an argv element contains a shell metacharacter; harmless "
-         "under saferun (shell=False) but a signal upstream argv "
-         "construction may be building from untrusted text"),
+         "an argv element contains a shell metacharacter or a "
+         "cmd.exe %VAR% variable reference; harmless under saferun "
+         "(shell=False) but a signal upstream argv construction may "
+         "be building from untrusted text"),
     Rule("SR-005", Severity.HIGH,
          "workdir is missing or is not an existing directory"),
     Rule("SR-006", Severity.INFO,
@@ -227,7 +243,12 @@ def shape_check(
                 where="argv[" + str(i) + "]",
             ))
 
-    # SR-004: shell metachars anywhere in argv (informational)
+    # SR-004: shell metachars or cmd.exe %VAR% in argv (informational).
+    # A single finding per element; char-set hit takes precedence over
+    # the pattern hit so the message cites the stronger signal when
+    # both are present ('$' is a bash operator regardless of OS; a
+    # %VAR% match alongside it still means the element would substitute
+    # under shell=True on either platform).
     for i, a in enumerate(arglist):
         if any((c in _SHELL_METACHARS) for c in a):
             findings.append(_finding(
@@ -235,6 +256,14 @@ def shape_check(
                 "argv[" + str(i)
                 + "] contains a shell metacharacter; harmless "
                 "under shell=False, flagged for upstream review",
+                where="argv[" + str(i) + "]",
+            ))
+        elif _CMD_VARSUB_RE.search(a):
+            findings.append(_finding(
+                "SR-004",
+                "argv[" + str(i)
+                + "] contains a cmd.exe variable reference (%VAR%); "
+                "harmless under shell=False, flagged for upstream review",
                 where="argv[" + str(i) + "]",
             ))
 

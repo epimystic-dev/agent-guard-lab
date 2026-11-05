@@ -42,7 +42,9 @@ RULES_META = (
     Rule("QN-007", Severity.HIGH,
          "role-switch opening ('You are now ...', 'From now on you are "
          "...', 'assume the role of ...', 'take on the persona of ...', "
-         "'behave as ...', 'simulate being ...') flattened"),
+         "'behave as ...', 'simulate being ...', 'imagine (that) you are "
+         "...', 'act like ...', and the contraction forms 'you're now "
+         "...', 'pretend you're ...', 'act as if you're ...') flattened"),
     Rule("QN-008", Severity.MEDIUM,
          "markdown HTML comment (potential hidden instruction) stripped"),
     Rule("QN-009", Severity.MEDIUM,
@@ -62,7 +64,12 @@ RULES_META = (
     Rule("QN-011", Severity.LOW,
          "excessive repeated characters (>= 32 of one char) compressed"),
     Rule("QN-012", Severity.HIGH,
-         "'disregard / override your (system) prompt' imperative "
+         "'disregard / override / bypass / ignore / replace your "
+         "(system) prompt / instructions / rules / safety / guardrails' "
+         "imperative flattened; disablement-verb family ('disable / "
+         "deactivate / turn off / circumvent') with the same qualifier "
+         "run (extended to include 'all') and terminal-noun tail "
+         "(extended to include 'restrictions' / 'limitations') also "
          "flattened"),
 )
 
@@ -182,18 +189,46 @@ _FOLLOW_NEG_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Role-switch openers. Each alternative is a complete opener phrase; the
+# trailing `\s+(?:a\s+|an\s+|the\s+)?[A-Za-z]` demands at least one more
+# word after the opener, so a bare quotation ('the phrase "act like" is
+# colloquial') passes through unflagged. The ASCII apostrophe form of
+# each contraction is listed next to its full-form twin so the fit of
+# the FP envelope is obvious: anything that matches 'pretend you are'
+# matches 'pretend you're' and vice versa.
 _ROLE_SWITCH_RE = re.compile(
-    r"\b(?:you\s+are\s+now|from\s+now\s+on,?\s+you\s+are|act\s+as(?:\s+if\s+you\s+are)?|"
-    r"pretend\s+(?:to\s+be|you\s+are)|roleplay\s+as|you\s+will\s+now\s+be|"
+    r"\b(?:you\s+are\s+now|you're\s+now|from\s+now\s+on,?\s+you\s+are|"
+    r"act\s+as(?:\s+if\s+you(?:\s+are|'re))?|"
+    r"act\s+like(?:\s+you(?:\s+are|'re))?|"
+    r"pretend\s+(?:to\s+be|you\s+are|you're)|"
+    r"imagine\s+(?:that\s+)?you(?:\s+are|'re)|"
+    r"roleplay\s+as|you\s+will\s+now\s+be|"
     r"assume\s+the\s+role\s+of|take\s+on\s+the\s+persona\s+of|"
     r"behave\s+as|simulate\s+being)"
     r"\s+(?:a\s+|an\s+|the\s+)?[A-Za-z]",
     re.IGNORECASE,
 )
 
+# Disablement-verb family (disable / deactivate / turn off / circumvent)
+# is tacked onto the original override verb list. These verbs rarely
+# appear coupled to an injection-shaped tail in benign prose: 'disable
+# your safety', 'turn off your guardrails', 'circumvent your
+# restrictions' are attack phrasings even though the individual words
+# are ordinary. The qualifier run gains 'all' because the disablement
+# verbs most commonly take an 'all' qualifier ('disable all safety
+# filters'), and the terminal-noun tail gains 'restrictions?' /
+# 'limitations?' because those are the natural targets of the
+# disablement family. 'limits?' / 'filters?' are deliberately NOT in
+# the terminal list: 'replace all filters' / 'override the limits' are
+# too common in benign technical prose (photo editing, HVAC
+# maintenance, rate-limit documentation) and adding them would push
+# the FP envelope beyond what the rest of QN-012 holds to.
 _OVERRIDE_RE = re.compile(
-    r"\b(?:disregard|override|bypass|ignore|replace)\s+"
-    r"(?:your\s+|the\s+)?(?:system\s+)?(?:prompt|instructions?|rules?|safety|guardrails?)",
+    r"\b(?:disregard|override|bypass|ignore|replace"
+    r"|disable|deactivate|turn\s+off|circumvent)\s+"
+    r"(?:your\s+|the\s+|all\s+)?(?:system\s+)?"
+    r"(?:prompt|instructions?|rules?|safety|guardrails?"
+    r"|restrictions?|limitations?)",
     re.IGNORECASE,
 )
 
