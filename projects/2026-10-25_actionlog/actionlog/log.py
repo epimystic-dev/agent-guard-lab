@@ -76,8 +76,18 @@ def _now_iso() -> str:
 
 
 def _validate_json_serialisable(payload: Any) -> None:
+    # allow_nan=False enforces RFC 8259 strict JSON at append time:
+    # Python's json.dumps defaults to writing NaN / Infinity / -Infinity
+    # as the bare tokens NaN, Infinity, -Infinity, which strict parsers
+    # (jq default, serde_json default, Go encoding/json decoding to
+    # float) refuse. The README promises a byte-wise re-hash stable
+    # across platforms; a line a strict reader cannot parse breaks that
+    # promise. Rejecting non-finite floats at the writer is cheap and
+    # closes the hole once.
     try:
-        json.dumps(payload, sort_keys=True, ensure_ascii=True)
+        json.dumps(
+            payload, sort_keys=True, ensure_ascii=True, allow_nan=False
+        )
     except (TypeError, ValueError) as e:
         raise LogError(
             "payload must be JSON-serialisable: " + str(e)

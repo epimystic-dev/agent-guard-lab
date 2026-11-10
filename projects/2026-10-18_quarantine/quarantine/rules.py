@@ -44,7 +44,9 @@ RULES_META = (
          "...', 'assume the role of ...', 'take on the persona of ...', "
          "'behave as ...', 'simulate being ...', 'imagine (that) you are "
          "...', 'act like ...', and the contraction forms 'you're now "
-         "...', 'pretend you're ...', 'act as if you're ...') flattened"),
+         "...', 'pretend you're ...', 'act as if you're ...'; the "
+         "'roleplay as' opener also matches the hyphenated / spaced "
+         "variants 'role-play as' and 'role play as') flattened"),
     Rule("QN-008", Severity.MEDIUM,
          "markdown HTML comment (potential hidden instruction) stripped"),
     Rule("QN-009", Severity.MEDIUM,
@@ -202,7 +204,7 @@ _ROLE_SWITCH_RE = re.compile(
     r"act\s+like(?:\s+you(?:\s+are|'re))?|"
     r"pretend\s+(?:to\s+be|you\s+are|you're)|"
     r"imagine\s+(?:that\s+)?you(?:\s+are|'re)|"
-    r"roleplay\s+as|you\s+will\s+now\s+be|"
+    r"role[\s-]?play\s+as|you\s+will\s+now\s+be|"
     r"assume\s+the\s+role\s+of|take\s+on\s+the\s+persona\s+of|"
     r"behave\s+as|simulate\s+being)"
     r"\s+(?:a\s+|an\s+|the\s+)?[A-Za-z]",

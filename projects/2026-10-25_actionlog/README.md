@@ -16,7 +16,7 @@ plus the Hugging Face July 2026 breach post-mortem (roughly 17,600 attacker acti
 Without a tamper-evident chain, those logs are only as trustworthy as the host that wrote them. `actionlog` is the smallest vendor-neutral, standard-library primitive that implements the shape:
 
 - **SHA-256 hash chain**. Each record carries `prev_hash` = previous record's `self_hash`; the first record uses a 64-zero genesis.
-- **Canonical JSON serialisation**. `sort_keys=True, separators=(',',':'), ensure_ascii=True`, so a byte-wise re-hash is stable across platforms.
+- **Canonical JSON serialisation**. `sort_keys=True, separators=(',',':'), ensure_ascii=True, allow_nan=False`, so a byte-wise re-hash is stable across platforms and every line is parseable by a strict RFC 8259 reader. `NaN`, `Infinity` and `-Infinity` are refused at `append()` time with `LogError`; they would otherwise be written as the non-standard bare tokens Python's default emits.
 - **`.head` sidecar**. The last `(seq, self_hash)` is written atomically next to the chain file; a reader detects a truncated chain by comparing the sidecar to the actual tail.
 - **A `verify()`** that walks the chain and names the first break with a `TamperKind` (one of nine) plus a rule id.
 - **Zero dependencies**. Python 3.9 or later, standard library only.

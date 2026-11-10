@@ -68,6 +68,36 @@ class AppendShapeTests(unittest.TestCase):
         with self.assertRaises(LogError):
             log.append("a", {"blob": object()})
 
+    def test_append_rejects_nonfinite_float_payload(self):
+        # NaN / +Inf / -Inf are not valid JSON per RFC 8259. Python's
+        # json.dumps default accepts them (writing bare NaN / Infinity
+        # / -Infinity tokens); strict parsers in other ecosystems refuse
+        # those lines. actionlog promises canonical JSON portable across
+        # platforms, so it must refuse non-finite floats at append time.
+        bad_values = (("nan", float("nan")),
+                      ("inf", float("inf")),
+                      ("-inf", float("-inf")))
+        shapes = []
+        for name, v in bad_values:
+            shapes.append((name + "/top-level", {"x": v}))
+            shapes.append((name + "/in-list", {"items": [1, v, 2]}))
+            shapes.append((name + "/nested-dict", {"outer": {"inner": v}}))
+        for label, payload in shapes:
+            with self.subTest(shape=label):
+                log = ActionLog(path=None)
+                with self.assertRaises(LogError):
+                    log.append("a", payload)
+
+    def test_append_accepts_finite_floats(self):
+        # FP guard: ordinary finite floats, including very large and
+        # very small magnitudes, must still pass through. This pins the
+        # scope of the non-finite rejection added above.
+        for ok in (1.5, -2.7, 0.0, 1e100, 1e-300, 3.141592653589793):
+            with self.subTest(value=ok):
+                log = ActionLog(path=None)
+                rec = log.append("a", {"x": ok, "items": [ok, ok]})
+                self.assertEqual(rec.payload["x"], ok)
+
     def test_append_on_closed_raises(self):
         log = ActionLog(path=None)
         log.close()
